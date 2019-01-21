@@ -43,9 +43,15 @@ class AuthController extends Controller
     * @return \Illuminate\Http\JsonResponse
     */
     public function login(){
-        $credentials = request(['username', 'password']);
+        /*$credentials = request(['username', 'password']);
         $token = auth('api')->attempt($credentials);
         if (!$token || ($token && !$this->guard()->user()['verified_at'])) return response()->json(['error' => 'Invalid username or password.']);
+        return $this->respondWithToken($token);*/
+
+        $credentials = request(['username', 'password']);
+        $token = auth('api')->attempt($credentials);
+        if (!$token) return response()->json(['status' => false, 'error' => 'Invalid username or password.', 'err_code' => '0']);
+        if($token && !$this->guard()->user()['verified_at']) return response()->json(['status' => false, 'error' => 'User not verified.', 'err_code' => '1']);
         return $this->respondWithToken($token);
     }
 
