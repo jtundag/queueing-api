@@ -29,8 +29,11 @@ class ServicesController extends Controller
     }
     
     public function delete(Request $request){
-        $deleted = $this->serviceRepo
-            ->deleteById($request->id);
+        $deleted = false;
+        $service = $this->serviceRepo
+            ->findById($request->id);
+            
+        if($service) $deleted = $servoce->delete();
 
         return response()->json([
             'status' => $deleted ? true : false,
