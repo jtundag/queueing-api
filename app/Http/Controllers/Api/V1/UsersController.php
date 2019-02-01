@@ -121,10 +121,12 @@ class UsersController extends Controller
     public function queues(Request $request){
         $user = auth('api')->user();
         
-        $transactions = $user->transactions()->with('flow', 'flow.steps', 'queues')->whereDate('transactions.created_at', \Carbon\Carbon::today())->whereHas('queues', function($q){ $q->whereIn('queues.status', ['queueing', 'skipped',]); })->get();
+        $transactions = $user->transactions()
+            ->with('flow', 'flow.steps', 'flow.steps.department', 'flow.steps.service')
+            ->whereHas('flow')
+            ->whereDate('transactions.created_at', \Carbon\Carbon::today())
+            ->get();
 
-        dd($transactions);
-        
         $queues = $user->queues()
                     ->with('department')
                     ->whereDate('queues.created_at', \Carbon\Carbon::today()->toDateString())
@@ -136,7 +138,31 @@ class UsersController extends Controller
         });
         
         return response()->json([
+            'with_flow_transactions' => $transactions,
             'result' => $queues,
+        ]);
+    }
+
+    public function availableDepartments(Request $request){
+        $user = auth('api')->user();
+        
+        $queuedDepartments = $user->queues()
+                                    ->with('department')
+                                    ->whereDate('queues.created_at', \Carbon\Carbon::today()->toDateString())
+                                    ->get()
+                                    ->pluck('department')
+                                    ->unique()
+                                    ->pluck('id')
+                                    ->toArray();
+                                    
+        $availableDepartments = \App\Department::whereNotIn('id', $queuedDepartments)->get()
+                                        ->map(function($dept){
+                                            $dept['total_queues'] = $dept->queues()->whereDate('queues.created_at', \Carbon\Carbon::today())->count();
+                                            return $dept;
+                                        });
+        
+        return response()->json([
+            'result' => $availableDepartments,
         ]);
     }
 
