@@ -105,6 +105,11 @@ class QueueController extends Controller
             $queue->status = 'serving';
             $queue->server_id = $request->server_id;
             $updated = $queue->save();
+            
+            if(!$queue->transaction->user->mobile_no) return response()->json([
+            'status' => $queue ? $updated : true,
+            'currently_serving' => $queue,
+        ]);
 
             $deviceID = env('SMSGATEWAYME_DEVICE_ID', '');
             $number = $queue->transaction->user->mobile_no;
@@ -125,9 +130,9 @@ class QueueController extends Controller
                 $sendMessageRequest,
             ]);
 
-            \OneSignal::sendNotificationToUser(
+            if($queue->transaction->user->player_id) \OneSignal::sendNotificationToUser(
                 $message,
-                $queue->transaction->user->player_id,
+                $queue->transaction->user->player_id
             );
         }
 
