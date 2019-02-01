@@ -1,0 +1,9 @@
+.fez123-bg{
+    &-primary{
+        background-color: $primaryColor;
+    }
+
+    &-grey-lightest{
+        background-color: $bodyBackgroundColor;
+    }
+}

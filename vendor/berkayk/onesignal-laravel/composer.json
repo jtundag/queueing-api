@@ -1,0 +1,44 @@
+{
+  "name": "berkayk/onesignal-laravel",
+  "description": "OneSignal Push Wrapper Laravel",
+  "keywords": ["onesignal", "webpush", "push", "laravel", "laravel 5"],
+  "type": "library",
+  "require": {
+    "php": ">=5.4.0",
+    "guzzlehttp/guzzle": "^6.2",
+    "illuminate/support": "4.*|5.*",
+    "symfony/psr-http-message-bridge": "1.*"
+  },
+  "require-dev": {
+    "vlucas/phpdotenv": "^2.2"
+  },
+  "autoload": {
+    "psr-4": {
+      "Berkayk\\OneSignal\\": "src/"
+    }
+  },
+  "extra": {
+    "laravel": {
+      "providers": [
+        "Berkayk\\OneSignal\\OneSignalServiceProvider"
+      ],
+      "aliases": {
+        "OneSignal": "Berkayk\\OneSignal\\OneSignalFacade"
+      }
+    }
+  },
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Berkay Kaya",
+      "email": "berkayk@gmail.com",
+      "homepage": "http://berkaykaya.com"
+    },
+    {
+      "name": "Maykonn Welington Candido",
+      "email": "maykonn@outlook.com"
+    }
+  ],
+  "minimum-stability": "dev",
+  "prefer-stable": true 
+}
