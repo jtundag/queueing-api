@@ -11,18 +11,15 @@ class UserRepository extends Repository implements TableContract{
 	}
 	
 	public function forTable(\Illuminate\Http\Request $request){
-		$query = $this->model->whereIs($request->role);
+		$query = $this->model->whereIs($request->role)
+					->with('department');
 
 		if($request->department_id){
 			$query = $query->where('department_id', $request->department_id);
 		}
 		
 		return [
-			'result' => $query->get()
-							->map(function($user){
-								$user['department'] = $user->department;
-								return $user;
-							}),
+			'result' => $query->get(),
 		];
 	}
 
