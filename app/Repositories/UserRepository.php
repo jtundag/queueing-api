@@ -16,9 +16,10 @@ class UserRepository extends Repository implements TableContract{
 		if($request->department_id){
 			$query = $query->where('department_id', $request->department_id);
 		}
-		
+
 		return [
-			'result' => $query->get(),
+			'result' => $this->model->whereIs($request->role)
+					->with('department')->get(),
 		];
 	}
 
