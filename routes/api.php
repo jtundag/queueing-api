@@ -97,6 +97,7 @@ Route::group(['prefix' => '/v1', 'namespace' => 'Api\V1'], function(){
 
     Route::post('update-player-id', 'UsersController@updatePlayerId')->name('update_player_id');
     Route::get('/user-queues', 'UsersController@queues')->name('queues');
+    Route::get('/available-departments', 'UsersController@availableDepartments')->name('available_departments');
 
     Route::group(['prefix' => 'transactions', 'name' => '.transactions'], function(){
         Route::get('/find', 'QueueController@find')->name('find');

@@ -11,7 +11,8 @@ class AdminUserTableSeeder extends Seeder
      */
     public function run()
     {
-        \App\User::where('uuid', 'admin')->first()->delete();
+        $admin = \App\User::where('uuid', 'admin')->first();
+        if($admin) $admin->delete();
         
         $admin = \App\User::create([
             'uuid' => 'admin',
