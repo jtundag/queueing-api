@@ -77,7 +77,7 @@ class AuthController extends Controller
         return response()->json([
             'status' => $status,
             'user' => $user,
-            'access_token' => auth('api')->getToken()->get(),
+            'access_token' => auth('api')->getToken() ? auth('api')->getToken->get() : null,
             'message' => $message,
         ]);
     }
