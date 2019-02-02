@@ -62,8 +62,6 @@ class AuthController extends Controller
         
         try {
             $user = \JWTAuth::parseToken()->authenticate();
-            dd($user);
-            die;
             $user['roles'] = $user->roles;
             $user['department'] = $user->department;
         } catch (\Tymon\JWTAuth\Exceptions\TokenExpiredException $e) {
