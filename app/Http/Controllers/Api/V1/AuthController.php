@@ -110,7 +110,10 @@ class AuthController extends Controller
     * @return \Illuminate\Http\JsonResponse
     */
     protected function respondWithToken($token){
-        $user = $this->guard()->user()->with('roles', 'department');
+        //$user = $this->guard()->user()->with('roles', 'department');
+        $user = $this->guard()->user();
+        $user['roles'] = $user->roles;
+        $user['department'] = $user->department;
         return response()->json([
             'access_token' => $token,
             'user' => $user,
