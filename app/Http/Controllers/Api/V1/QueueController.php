@@ -106,29 +106,26 @@ class QueueController extends Controller
             $queue->server_id = $request->server_id;
             $updated = $queue->save();
             
-            if(!$queue->transaction->user->mobile_no) return response()->json([
-            'status' => $queue ? $updated : true,
-            'currently_serving' => $queue,
-        ]);
+            if($queue->transaction->user->mobile_no){
+                $deviceID = env('SMSGATEWAYME_DEVICE_ID', '');
+                $number = $queue->transaction->user->mobile_no;
+                $message = 'ITS YOUR TURN! Please present your priority number (' . $queue->priority_number . ') to ' . $server->name;
+                
+                $config = Configuration::getDefaultConfiguration();
+                $config->setApiKey('Authorization', env('SMSGATEWAYME_API', ''));
+                $apiClient = new ApiClient($config);
+                $messageClient = new MessageApi($apiClient);
 
-            $deviceID = env('SMSGATEWAYME_DEVICE_ID', '');
-            $number = $queue->transaction->user->mobile_no;
-            $message = 'ITS YOUR TURN! Please present your priority number (' . $queue->priority_number . ') to ' . $server->name;
-            
-            $config = Configuration::getDefaultConfiguration();
-            $config->setApiKey('Authorization', env('SMSGATEWAYME_API', ''));
-            $apiClient = new ApiClient($config);
-            $messageClient = new MessageApi($apiClient);
+                $sendMessageRequest = new SendMessageRequest([
+                    'phoneNumber' => $number,
+                    'message' => $message,
+                    'deviceId' => $deviceID,
+                ]);
 
-            $sendMessageRequest = new SendMessageRequest([
-                'phoneNumber' => $number,
-                'message' => $message,
-                'deviceId' => $deviceID,
-            ]);
-
-            $sendMessages = $messageClient->sendMessages([
-                $sendMessageRequest,
-            ]);
+                $sendMessages = $messageClient->sendMessages([
+                    $sendMessageRequest,
+                ]);
+            }
 
             if($queue->transaction->user->player_id) \OneSignal::sendNotificationToUser(
                 $message,

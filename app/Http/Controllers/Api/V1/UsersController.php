@@ -160,6 +160,10 @@ class UsersController extends Controller
                                             $dept['total_queues'] = $dept->queues()->whereDate('queues.created_at', \Carbon\Carbon::today())->count();
                                             return $dept;
                                         });
+        $availableDepartments->map(function($dept){
+            $dept['services'] = \App\Department::find($dept->id)->servers()->with('services')->get()->pluck('services')->flatten()->unique('id');
+            return $dept;
+        });
         
         return response()->json([
             'result' => $availableDepartments,
