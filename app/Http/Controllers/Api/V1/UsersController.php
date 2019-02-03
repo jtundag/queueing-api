@@ -154,6 +154,7 @@ class UsersController extends Controller
         $queuedDepartments = $user->queues()
                                     ->with('department')
                                     ->whereDate('queues.created_at', \Carbon\Carbon::today()->toDateString())
+                                    ->where('queues.status', '!=', 'served')
                                     ->get()
                                     ->pluck('department')
                                     ->unique()
