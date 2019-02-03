@@ -120,6 +120,11 @@ class UsersController extends Controller
 
     public function queues(Request $request){
         $user = auth('api')->user();
+
+        if(!$user) return response()->json([
+            'status' => false,
+            'message' => 'Cannot find user.',
+        ]);
         
         $transactions = $user->transactions()
             ->with('flow', 'flow.steps', 'flow.steps.department', 'flow.steps.service')
