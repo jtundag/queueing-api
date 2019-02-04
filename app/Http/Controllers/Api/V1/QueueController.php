@@ -74,12 +74,17 @@ class QueueController extends Controller
             $currentlyServing->save();
             $nextStep = null;
             if($currentlyServing->transaction->flow()->exists() && $request->action != 'skip'){
+                $currentStep = $currentlyServing->transaction->flow->steps()->where('status', 'processing')->first();
                 $nextStep = $currentlyServing->transaction->flow->steps()->where('status', 'queueing')->first();
                 if($nextStep){
                     $this->transactionRepo->createQueueFor($currentlyServing->transaction, [
                         'department_id' => $nextStep->department->id,
                         'service_id' => $nextStep->service->id,
                     ]);
+
+                    $currentStep->pivot->status = 'completed';
+                    $currentStep->pivot->save();
+                    
                     $nextStep->pivot->status = 'processing';
                     $nextStep->pivot->save();
                 }else {
