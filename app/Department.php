@@ -38,5 +38,9 @@ class Department extends Model
     public function serversWithServices(){
         return $this->servers()->with('services');
     }
+
+    public function totalQueuesForToday(){
+        return $this->queues()->whereDate('queues.created_at', \Carbon\Carbon::today())->count();
+    }
     
 }

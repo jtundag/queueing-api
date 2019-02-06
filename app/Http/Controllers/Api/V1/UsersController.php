@@ -139,7 +139,7 @@ class UsersController extends Controller
 
         $queues = $queues->get()->map(function($queue){
             $queue['waiting_time'] = $this->transactionRepository->generateWaitingTimeFor($queue);
-            $queue->department['total_queues'] = $queue->department->queues()->whereDate('queues.created_at', \Carbon\Carbon::today())->count();
+            $queue->department['total_queues'] = $queue->department->totalQueuesForToday();
             return $queue;
         });
         
@@ -164,7 +164,7 @@ class UsersController extends Controller
                                     
         $availableDepartments = \App\Department::whereNotIn('id', $queuedDepartments)->get()
                             ->map(function($dept){
-                                $dept['total_queues'] = $dept->queues()->whereDate('queues.created_at', \Carbon\Carbon::today())->count();
+                                $dept['total_queues'] = $dept->totalQueuesForToday();
                                 return $dept;
                             });
         $availableDepartments->map(function($dept){
