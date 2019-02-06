@@ -164,7 +164,8 @@ class UsersController extends Controller
                                     
         $availableDepartments = \App\Department::whereNotIn('id', $queuedDepartments)->get()
                             ->map(function($dept){
-                                $dept['total_queues'] = $dept->totalQueuesForToday();
+                                //$dept['total_queues'] = $dept->totalQueuesForToday();
+                                $dept['total_queues'] = $dept->queues()->whereDate('queues.created_at', \Carbon\Carbon::today())->where('queues.status', '!=', 'served')->count();
                                 return $dept;
                             });
         $availableDepartments->map(function($dept){
