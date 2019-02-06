@@ -146,6 +146,14 @@ class QueueController extends Controller
     
     public function serviceQueues(Request $request){
         $department = \App\Department::find($request->department_id);
+
+        $pastQueues = $department->queues()
+                            ->whereDate('created_at', \Carbon\Carbon::today())
+                            ->whereIn('status', ['served', 'skipped'])
+                            ->orderBy('created_at', 'desc')
+                            ->limit(10)
+                            ->get();
+        
         $queues = $department->servers()
                             ->with([
                                 'queues' => function($q){
@@ -158,6 +166,7 @@ class QueueController extends Controller
                             ->get();
         return response()->json([
             'result' => $queues,
+            'past_queues' => $pastQueues,
         ]);
     }
     
