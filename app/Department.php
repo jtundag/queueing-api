@@ -40,7 +40,7 @@ class Department extends Model
     }
 
     public function totalQueuesForToday(){
-        return $this->queues()->whereDate('queues.created_at', \Carbon\Carbon::today())->count();
+        return $this->queues()->whereDate('queues.created_at', \Carbon\Carbon::today())->whereIn('queues.status', ['queueing', 'skipped'])->count();
     }
     
 }
