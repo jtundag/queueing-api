@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Repositories\UserRepository;
 use App\Repositories\TransactionRepository;
 use League\Csv\Reader;
+use CiroVargas\GoogleDistanceMatrix\GoogleDistanceMatrix;
 
 class UsersController extends Controller
 {
@@ -135,11 +136,27 @@ class UsersController extends Controller
         $queues = $user->queues()
                     ->with('department')
                     ->whereDate('queues.created_at', \Carbon\Carbon::today()->toDateString())
-                    ->whereIn('queues.status', ['queueing', 'skipped',]);
-
-        $queues = $queues->get()->map(function($queue){
+                    ->whereIn('queues.status', ['queueing', 'skipped',])->get();
+        $distanceMatrix = new GoogleDistanceMatrix(env('GOOGLE_MATRIX_API'));
+        $queues = $queues->map(function($queue) use ($request, $distanceMatrix, $queues) {
             $queue['waiting_time'] = $this->transactionRepository->generateWaitingTimeFor($queue);
             $queue->department['total_queues'] = $queue->department->totalQueuesForToday();
+            if(!$distanceMatrix) return $queue;
+            if(!$queue->department->marker_location) return $queue;
+            if($queue->department['distance']) return $queue;
+            $destination = implode(', ', array_reverse(json_decode(str_replace('\\', '', $queue->department->marker_location), true)));
+            $distance = $distanceMatrix->addOrigin($request->origin)
+                ->addDestination($destination)
+                ->sendRequest();
+            if($distance->getStatus() == 'OK'){
+                $queue->department['distance'] = [
+                    'duration' => $distance->getRows()[0]->getElements()[0]->getDuration()->getText(),
+                    'distance' => $distance->getRows()[0]->getElements()[0]->getDistance()->getText(),
+                ];
+                $queues->map(function($q) use ($queue, $distance) {
+                    if($q->department->id == $queue->department->id) $q->department['distance'] = $queue->department['distance'];
+                });
+            }
             return $queue;
         });
         
