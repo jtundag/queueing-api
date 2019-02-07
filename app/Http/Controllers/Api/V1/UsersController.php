@@ -147,6 +147,7 @@ class UsersController extends Controller
             $destination = implode(', ', array_reverse(json_decode(str_replace('\\', '', $queue->department->marker_location), true)));
             $distance = $distanceMatrix->addOrigin($request->origin)
                 ->addDestination($destination)
+                ->setMode(GoogleDistanceMatrix::MODE_WALKING)
                 ->sendRequest();
             if($distance->getStatus() == 'OK'){
                 $queue->department['distance'] = [
