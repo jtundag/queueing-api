@@ -28,8 +28,19 @@ class TransactionRepository extends Repository{
 		return '\App\Transaction';
 	}
 
+	private function hasPendingQueueIn($request, $user){
+		$queued = $user->queues()
+				->where('queues.department_id', $request->department_id)
+				->where('queues.service_id', $request->service_id)
+				->whereDate('queues.created_at', \Carbon\Carbon::today())
+				->whereIn('queues.status', ['queueing', 'skipped'])
+				->limit(1)
+				->count();
+		return $queued;
+	}
 	
 	public function push($request, $user){
+		if($this->hasPendingQueueIn($request, $user)) return response()->json(['status' => false, 'message' => 'Only 1 queue is allowed per department.']);
 		$transaction = $this->create([
 			'user_id' => $user->id, 
 			'status' => 'processing',
@@ -60,6 +71,27 @@ class TransactionRepository extends Repository{
 		$firstStep->pivot->status = 'processing';
 		$firstStep->pivot->save();
 		$waitingTime = $this->generateWaitingTimeFor($queue);
+
+		if($request->has('guest') && $request->guest && $queue->transaction->user->mobile_no){
+			$deviceID = env('SMSGATEWAYME_DEVICE_ID', '');
+			$number = $queue->transaction->user->mobile_no;
+			$message = 'Your priority number is ' . $queue->priority_number . '.';
+			
+			$config = Configuration::getDefaultConfiguration();
+			$config->setApiKey('Authorization', env('SMSGATEWAYME_API', ''));
+			$apiClient = new ApiClient($config);
+			$messageClient = new MessageApi($apiClient);
+
+			$sendMessageRequest = new SendMessageRequest([
+				'phoneNumber' => $number,
+				'message' => $message,
+				'deviceId' => $deviceID,
+			]);
+
+			$sendMessages = $messageClient->sendMessages([
+				$sendMessageRequest,
+			]);
+		}
 		
 		return response()->json(['status' => true, 'priority_number' => $queue->priority_number, 'waiting_time' => $waitingTime,]);
 	}

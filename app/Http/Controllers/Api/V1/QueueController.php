@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\V1;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Repositories\TransactionRepository;
+use App\Repositories\UserRepository;
 use SMSGatewayMe\Client\ApiClient;
 use SMSGatewayMe\Client\Configuration;
 use SMSGatewayMe\Client\Api\MessageApi;
@@ -13,13 +14,23 @@ use SMSGatewayMe\Client\Model\SendMessageRequest;
 class QueueController extends Controller
 {
     private $transactionRepo;
+    private $userRepo;
 
-    public function __construct(TransactionRepository $transactionRepo){
+    public function __construct(TransactionRepository $transactionRepo,
+                                UserRepository $userRepo){
         $this->transactionRepo = $transactionRepo;
+        $this->userRepo = $userRepo;
     }
     
     public function push(Request $request){
-        $user = $request->has('uuid') ? \App\User::where('uuid', $request->uuid)->first() : auth('api')->user();
+        $user = null;
+        if($request->has('guest') && $request->guest){
+            $user = $this->userRepo
+                            ->create($request->all());
+                            
+            \Bouncer::assign('guest')->to($user);
+        }
+        if(!$user) $user = $request->has('uuid') ? \App\User::where('uuid', $request->uuid)->first() : auth('api')->user();
         if(!$user) return response()->json(['status' => false, 'message' => 'Cannot find user.']);
         return $this->transactionRepo->push($request, $user);
     }
